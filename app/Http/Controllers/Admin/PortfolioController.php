@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Portfolio;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class PortfolioController extends Controller
 {
@@ -29,14 +32,16 @@ class PortfolioController extends Controller
         $validated['slug']        = Str::slug($validated['title']);
 
         if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('portfolios', 'public');
+            $validated['thumbnail'] = $this->storeImage(
+                $request->file('thumbnail'), 'portfolios', 1280, 80
+            );
         }
 
         // Handle multiple images
         $images = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $images[] = $image->store('portfolios/gallery', 'public');
+                $images[] = $this->storeImage($image, 'portfolios/gallery', 1920, 75);
             }
         }
         $validated['images'] = count($images) ? $images : null;
@@ -58,7 +63,9 @@ class PortfolioController extends Controller
 
         if ($request->hasFile('thumbnail')) {
             if ($portfolio->thumbnail) Storage::disk('public')->delete($portfolio->thumbnail);
-            $validated['thumbnail'] = $request->file('thumbnail')->store('portfolios', 'public');
+            $validated['thumbnail'] = $this->storeImage(
+                $request->file('thumbnail'), 'portfolios', 1280, 80
+            );
         }
 
         // Handle delete existing images
@@ -74,7 +81,7 @@ class PortfolioController extends Controller
         // Handle new images upload
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $existingImages[] = $image->store('portfolios/gallery', 'public');
+                $existingImages[] = $this->storeImage($image, 'portfolios/gallery', 1920, 75);
             }
         }
         $validated['images'] = count($existingImages) ? array_values($existingImages) : null;
@@ -95,6 +102,32 @@ class PortfolioController extends Controller
         return back()->with('success', 'Portfolio dihapus!');
     }
 
+    /**
+     * Compress, resize (max width), dan simpan gambar ke storage.
+     * Selalu output sebagai JPEG untuk ukuran lebih kecil.
+     */
+    private function storeImage(UploadedFile $file, string $folder, int $maxWidth = 1280, int $quality = 80): string
+    {
+        $manager  = new ImageManager(new Driver());
+        $image    = $manager->read($file->getRealPath());
+
+        // Resize hanya jika lebih lebar dari maxWidth (pertahankan rasio)
+        if ($image->width() > $maxWidth) {
+            $image->scaleDown(width: $maxWidth);
+        }
+
+        $filename = $folder . '/' . Str::uuid() . '.jpg';
+        $fullPath = Storage::disk('public')->path($filename);
+
+        // Pastikan direktori ada
+        Storage::disk('public')->makeDirectory($folder);
+
+        // Encode ke JPEG dengan kualitas tertentu lalu simpan
+        $image->toJpeg($quality)->save($fullPath);
+
+        return $filename;
+    }
+
     private function validatePortfolio(Request $request): array
     {
         return $request->validate([
@@ -109,8 +142,8 @@ class PortfolioController extends Controller
             'is_active'         => 'boolean',
             'sort_order'        => 'required|integer|min:0',
             'completed_at'      => 'nullable|date',
-            'thumbnail'         => 'nullable|image|max:2048',
-            'images.*'          => 'nullable|image|max:2048',
+            'thumbnail'         => 'nullable|image|max:10240',  // 10MB — di-compress server-side
+            'images.*'          => 'nullable|image|max:10240',  // 10MB per gambar
             'delete_images'     => 'nullable|array',
         ]);
     }
