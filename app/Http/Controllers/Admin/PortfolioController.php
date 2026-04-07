@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class PortfolioController extends Controller
 {
@@ -104,26 +102,64 @@ class PortfolioController extends Controller
 
     /**
      * Compress, resize (max width), dan simpan gambar ke storage.
+     * Menggunakan GD native PHP — tanpa library eksternal.
      * Selalu output sebagai JPEG untuk ukuran lebih kecil.
      */
     private function storeImage(UploadedFile $file, string $folder, int $maxWidth = 1280, int $quality = 80): string
     {
-        $manager  = new ImageManager(new Driver());
-        $image    = $manager->read($file->getRealPath());
+        $sourcePath = $file->getRealPath();
+        $mime       = $file->getMimeType();
 
-        // Resize hanya jika lebih lebar dari maxWidth (pertahankan rasio)
-        if ($image->width() > $maxWidth) {
-            $image->scaleDown(width: $maxWidth);
+        // Buat resource GD dari file upload
+        $source = match (true) {
+            str_contains($mime, 'png')  => imagecreatefrompng($sourcePath),
+            str_contains($mime, 'webp') => imagecreatefromwebp($sourcePath),
+            str_contains($mime, 'gif')  => imagecreatefromgif($sourcePath),
+            default                     => imagecreatefromjpeg($sourcePath),
+        };
+
+        if (!$source) {
+            // Fallback: simpan langsung tanpa compress
+            $filename = $folder . '/' . Str::uuid() . '.jpg';
+            Storage::disk('public')->put($filename, file_get_contents($sourcePath));
+            return $filename;
         }
 
-        $filename = $folder . '/' . Str::uuid() . '.jpg';
-        $fullPath = Storage::disk('public')->path($filename);
+        $origW = imagesx($source);
+        $origH = imagesy($source);
+
+        // Hitung dimensi baru (resize hanya jika lebih lebar dari maxWidth)
+        if ($origW > $maxWidth) {
+            $newW = $maxWidth;
+            $newH = (int) round($origH * ($maxWidth / $origW));
+        } else {
+            $newW = $origW;
+            $newH = $origH;
+        }
+
+        // Buat canvas baru dan resampling
+        $canvas = imagecreatetruecolor($newW, $newH);
+
+        // Pertahankan transparansi untuk PNG
+        if (str_contains($mime, 'png')) {
+            imagealphablending($canvas, false);
+            imagesavealpha($canvas, true);
+            $transparent = imagecolorallocatealpha($canvas, 255, 255, 255, 127);
+            imagefilledrectangle($canvas, 0, 0, $newW, $newH, $transparent);
+        }
+
+        imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+        imagedestroy($source);
 
         // Pastikan direktori ada
         Storage::disk('public')->makeDirectory($folder);
 
-        // Encode ke JPEG dengan kualitas tertentu lalu simpan
-        $image->toJpeg($quality)->save($fullPath);
+        // Simpan ke buffer lalu ke storage
+        $filename = $folder . '/' . Str::uuid() . '.jpg';
+        $fullPath = Storage::disk('public')->path($filename);
+
+        imagejpeg($canvas, $fullPath, $quality);
+        imagedestroy($canvas);
 
         return $filename;
     }
