@@ -32,6 +32,15 @@ class PortfolioController extends Controller
             $validated['thumbnail'] = $request->file('thumbnail')->store('portfolios', 'public');
         }
 
+        // Handle multiple images
+        $images = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $images[] = $image->store('portfolios/gallery', 'public');
+            }
+        }
+        $validated['images'] = count($images) ? $images : null;
+
         Portfolio::create($validated);
         return redirect()->route('admin.portfolios.index')->with('success', 'Portfolio ditambahkan!');
     }
@@ -52,6 +61,24 @@ class PortfolioController extends Controller
             $validated['thumbnail'] = $request->file('thumbnail')->store('portfolios', 'public');
         }
 
+        // Handle delete existing images
+        $existingImages = $portfolio->images ?? [];
+        $toDelete = $request->input('delete_images', []);
+        if (!empty($toDelete)) {
+            foreach ($toDelete as $path) {
+                Storage::disk('public')->delete($path);
+            }
+            $existingImages = array_values(array_diff($existingImages, $toDelete));
+        }
+
+        // Handle new images upload
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $existingImages[] = $image->store('portfolios/gallery', 'public');
+            }
+        }
+        $validated['images'] = count($existingImages) ? array_values($existingImages) : null;
+
         $portfolio->update($validated);
         return redirect()->route('admin.portfolios.index')->with('success', 'Portfolio diperbarui!');
     }
@@ -59,6 +86,11 @@ class PortfolioController extends Controller
     public function destroy(Portfolio $portfolio)
     {
         if ($portfolio->thumbnail) Storage::disk('public')->delete($portfolio->thumbnail);
+        if ($portfolio->images) {
+            foreach ($portfolio->images as $img) {
+                Storage::disk('public')->delete($img);
+            }
+        }
         $portfolio->delete();
         return back()->with('success', 'Portfolio dihapus!');
     }
@@ -78,6 +110,8 @@ class PortfolioController extends Controller
             'sort_order'        => 'required|integer|min:0',
             'completed_at'      => 'nullable|date',
             'thumbnail'         => 'nullable|image|max:2048',
+            'images.*'          => 'nullable|image|max:2048',
+            'delete_images'     => 'nullable|array',
         ]);
     }
 }

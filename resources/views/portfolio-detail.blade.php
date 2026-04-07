@@ -45,12 +45,35 @@
 
         {{-- Thumbnail --}}
         @if($portfolio->thumbnail)
-        <div class="rounded-2xl overflow-hidden border border-gray-800 mb-10 shadow-2xl shadow-indigo-500/5">
-            <img src="{{ Storage::url($portfolio->thumbnail) }}" alt="{{ $portfolio->title }}" class="w-full">
+        <div class="rounded-2xl overflow-hidden border border-gray-800 mb-8 shadow-2xl shadow-indigo-500/5 cursor-zoom-in"
+             onclick="openLightbox('{{ Storage::url($portfolio->thumbnail) }}', 0)">
+            <img src="{{ Storage::url($portfolio->thumbnail) }}" alt="{{ $portfolio->title }}" class="w-full hover:scale-[1.01] transition-transform duration-300">
         </div>
         @else
-        <div class="rounded-2xl border border-gray-800 mb-10 h-64 bg-gray-900 flex items-center justify-center">
+        <div class="rounded-2xl border border-gray-800 mb-8 h-64 bg-gray-900 flex items-center justify-center">
             <i class="fas fa-image text-6xl text-gray-700"></i>
+        </div>
+        @endif
+
+        {{-- Gallery Images --}}
+        @if(!empty($portfolio->images) && count($portfolio->images) > 0)
+        <div class="mb-10">
+            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-images text-indigo-400 mr-2"></i>Galeri Proyek
+                <span class="text-gray-600 normal-case font-normal ml-1">({{ count($portfolio->images) }} gambar)</span>
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                @foreach($portfolio->images as $i => $img)
+                <div class="rounded-xl overflow-hidden border border-gray-800 aspect-video bg-gray-900 cursor-pointer group relative"
+                     onclick="openLightbox('{{ Storage::url($img) }}', {{ $i }})">
+                    <img src="{{ Storage::url($img) }}" alt="Gallery {{ $i + 1 }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <i class="fas fa-expand text-white opacity-0 group-hover:opacity-100 transition-opacity text-lg drop-shadow"></i>
+                    </div>
+                </div>
+                @endforeach
+            </div>
         </div>
         @endif
 
@@ -94,4 +117,86 @@
 
     </div>
 </section>
+
+{{-- ── LIGHTBOX MODAL ── --}}
+@if($portfolio->thumbnail || !empty($portfolio->images))
+<div id="lightbox" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+     style="display:none!important" onclick="closeLightboxOnBg(event)">
+
+    {{-- Close --}}
+    <button onclick="closeLightbox()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10">
+        <i class="fas fa-times"></i>
+    </button>
+
+    {{-- Prev --}}
+    <button id="lb-prev" onclick="lightboxNav(-1)"
+        class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+
+    {{-- Image --}}
+    <img id="lb-img" src="" alt="" class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain select-none">
+
+    {{-- Next --}}
+    <button id="lb-next" onclick="lightboxNav(1)"
+        class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    {{-- Counter --}}
+    <div id="lb-counter" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-gray-400 bg-black/50 px-3 py-1 rounded-full"></div>
+</div>
+
+<script>
+    // Build image list: thumbnail first, then gallery
+    const lbImages = [
+        @if($portfolio->thumbnail) '{{ Storage::url($portfolio->thumbnail) }}', @endif
+        @if(!empty($portfolio->images))
+            @foreach($portfolio->images as $img) '{{ Storage::url($img) }}', @endforeach
+        @endif
+    ];
+    let lbIndex = 0;
+
+    function openLightbox(src, galleryIndex) {
+        // galleryIndex: -1 = thumbnail, >=0 = gallery item
+        lbIndex = lbImages.indexOf(src);
+        if (lbIndex < 0) lbIndex = 0;
+        updateLightbox();
+        document.getElementById('lightbox').style.removeProperty('display');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function updateLightbox() {
+        const img = document.getElementById('lb-img');
+        img.src = lbImages[lbIndex];
+        document.getElementById('lb-counter').textContent = (lbIndex + 1) + ' / ' + lbImages.length;
+        document.getElementById('lb-prev').style.display = lbImages.length <= 1 ? 'none' : '';
+        document.getElementById('lb-next').style.display = lbImages.length <= 1 ? 'none' : '';
+    }
+
+    function lightboxNav(dir) {
+        lbIndex = (lbIndex + dir + lbImages.length) % lbImages.length;
+        updateLightbox();
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function closeLightboxOnBg(e) {
+        if (e.target === document.getElementById('lightbox')) closeLightbox();
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        const lb = document.getElementById('lightbox');
+        if (lb.style.display === 'none' || lb.style.display === '') return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowRight') lightboxNav(1);
+        if (e.key === 'ArrowLeft') lightboxNav(-1);
+    });
+</script>
+@endif
+
 @endsection
