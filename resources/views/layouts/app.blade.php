@@ -40,7 +40,6 @@
                     <a href="#hero" class="nav-link">Home</a>
                     <a href="#about" class="nav-link">About</a>
                     <a href="#skills" class="nav-link">Skills</a>
-                    <a href="#experience" class="nav-link">Experience</a>
                     <a href="#education" class="nav-link">Education</a>
                     <a href="#portfolio" class="nav-link">Portfolio</a>
                     <a href="#contact" class="nav-link">Contact</a>
@@ -79,7 +78,6 @@
                 <a href="#hero" class="mobile-nav-link">Home</a>
                 <a href="#about" class="mobile-nav-link">About</a>
                 <a href="#skills" class="mobile-nav-link">Skills</a>
-                <a href="#experience" class="mobile-nav-link">Experience</a>
                 <a href="#education" class="mobile-nav-link">Education</a>
                 <a href="#portfolio" class="mobile-nav-link">Portfolio</a>
                 <a href="#contact" class="mobile-nav-link">Contact</a>
@@ -123,7 +121,7 @@
                     <div class="space-y-2">
                         <a href="#about" class="footer-link">About Me</a>
                         <a href="#skills" class="footer-link">Skills</a>
-                        <a href="#experience" class="footer-link">Experience</a>
+                        <a href="#education" class="footer-link">Education</a>
                         <a href="#portfolio" class="footer-link">Portfolio</a>
                         <a href="#contact" class="footer-link">Contact</a>
                     </div>

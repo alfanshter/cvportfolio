@@ -57,13 +57,13 @@
                 {{-- Stats row --}}
                 <div class="flex gap-8 justify-center lg:justify-start mb-10 fade-up">
                     <div class="text-center lg:text-left">
-                        <div class="text-3xl font-black text-white">{{ $experiences->count() }}</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Proyek</div>
+                        <div class="text-3xl font-black text-white">{{ $portfolios->count() }}</div>
+                        <div class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Projects</div>
                     </div>
                     <div class="w-px bg-gradient-to-b from-transparent via-gray-700 to-transparent"></div>
                     <div class="text-center lg:text-left">
-                        <div class="text-3xl font-black text-white">{{ $portfolios->count() }}</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Projects</div>
+                        <div class="text-3xl font-black text-white">{{ $skills->flatten()->count() }}</div>
+                        <div class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Skills</div>
                     </div>
                     <div class="w-px bg-gradient-to-b from-transparent via-gray-700 to-transparent"></div>
                     <div class="text-center lg:text-left">
@@ -147,8 +147,8 @@
                     </div>
 
                     <div class="absolute -top-5 -right-5 glass-card border border-violet-500/30 rounded-2xl px-4 py-3 shadow-xl backdrop-blur-xl">
-                        <div class="text-sm font-black text-white">{{ $experiences->count() }}+ Projects</div>
-                        <div class="text-xs text-violet-400 mt-0.5">Proyek Selesai</div>
+                        <div class="text-sm font-black text-white">{{ $portfolios->count() }}+ Projects</div>
+                        <div class="text-xs text-violet-400 mt-0.5">Portfolio Selesai</div>
                     </div>
 
                     <div class="absolute top-6 -left-3 w-3 h-3 rounded-full bg-violet-500 shadow-lg shadow-violet-500/50 animate-pulse"></div>
@@ -290,10 +290,6 @@
                                 @endif
                             </span>
                         </div>
-                        <div class="flex items-center justify-between py-2.5 border-b border-gray-800/60">
-                            <span class="text-gray-500 text-sm">Proyek</span>
-                            <span class="text-gray-200 font-semibold text-sm">{{ $experiences->count() }} Proyek</span>
-                        </div>
                         <div class="flex items-center justify-between py-2.5">
                             <span class="text-gray-500 text-sm">Projects Done</span>
                             <span class="text-violet-400 font-bold text-sm">{{ $portfolios->count() }}+ Projects</span>
@@ -358,93 +354,6 @@
 
 
 {{-- ══════════════════════════════════════════════════════ --}}
-{{--                 EXPERIENCE SECTION                     --}}
-{{-- ══════════════════════════════════════════════════════ --}}
-<section id="experience" class="py-28 relative overflow-hidden">
-    <div class="section-blob-left"></div>
-
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16 fade-up">
-            <div class="section-label">Project History</div>
-            <h2 class="section-title">Proyek yang Dikerjakan</h2>
-        </div>
-
-        <div class="relative fade-up">
-            <div class="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-violet-500 via-indigo-500/50 to-transparent hidden md:block"></div>
-
-            <div class="space-y-6 md:pl-20">
-                @foreach($experiences as $exp)
-                <div class="relative timeline-card group">
-                    <div class="absolute -left-[4.8rem] top-8 hidden md:flex">
-                        <div class="w-5 h-5 rounded-full border-2 border-violet-500 bg-[#0a0a12] flex items-center justify-center shadow-lg shadow-violet-500/30">
-                            <div class="w-2 h-2 rounded-full bg-violet-500 group-hover:bg-violet-400 transition-colors"></div>
-                        </div>
-                    </div>
-
-                    <div class="glass-card rounded-3xl p-6 lg:p-8 border border-white/5 group-hover:border-violet-500/20 transition-all duration-300">
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 flex items-center justify-center shrink-0 group-hover:border-violet-500/60 transition-colors">
-                                    <i class="fas fa-code text-violet-400 text-sm"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-white leading-tight">{{ $exp->position }}</h3>
-                                    <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                                        <span class="text-violet-400 font-semibold text-sm">{{ $exp->client_name }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-700"></span>
-                                        <span class="experience-type-tag">{{ $exp->project_type }}</span>
-                                        @if($exp->is_current)
-                                        <span class="experience-current-tag">Ongoing</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-left sm:text-right shrink-0">
-                                <div class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 bg-gray-800/80 px-3 py-1.5 rounded-full">
-                                    <i class="fas fa-calendar-alt text-violet-500 text-xs"></i>
-                                    {{ $exp->start_date->format('M Y') }} — {{ $exp->is_current ? 'Sekarang' : $exp->end_date->format('M Y') }}
-                                </div>
-                                @if($exp->duration)
-                                <div class="text-xs text-violet-400/70 mt-1.5 text-center sm:text-right font-medium">{{ $exp->duration }}</div>
-                                @endif
-                                @if($exp->location)
-                                <div class="text-xs text-gray-600 mt-1 flex items-center gap-1 justify-start sm:justify-end">
-                                    <i class="fas fa-map-marker-alt"></i> {{ $exp->location }}
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if($exp->description)
-                        <div class="space-y-1.5 mb-5">
-                            @foreach(explode("\n", $exp->description) as $line)
-                                @if(trim($line))
-                                <div class="flex gap-3 text-sm text-gray-400">
-                                    <i class="fas fa-chevron-right text-violet-500/60 mt-1 text-xs shrink-0"></i>
-                                    <span>{{ trim($line) }}</span>
-                                </div>
-                                @endif
-                            @endforeach
-                        </div>
-                        @endif
-
-                        @if($exp->technologies)
-                        <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-800/60">
-                            @foreach($exp->technologies_array as $tech)
-                            <span class="tech-tag">{{ $tech }}</span>
-                            @endforeach
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-</section>
-
-
-{{-- ══════════════════════════════════════════════════════ --}}
 {{--                 EDUCATION SECTION                      --}}
 {{-- ══════════════════════════════════════════════════════ --}}
 <section id="education" class="py-28 relative overflow-hidden">
@@ -498,7 +407,7 @@
 {{-- ══════════════════════════════════════════════════════ --}}
 {{--               PORTFOLIO SECTION                        --}}
 {{-- ══════════════════════════════════════════════════════ --}}
-@if($featured->count())
+@if($portfolios->count())
 <section id="portfolio" class="py-28 relative overflow-hidden">
     <div class="section-blob-left"></div>
 
@@ -506,16 +415,23 @@
         <div class="flex flex-col sm:flex-row items-end justify-between mb-16 fade-up">
             <div>
                 <div class="section-label">Selected Work</div>
-                <h2 class="section-title mb-0">Featured Projects</h2>
+                <h2 class="section-title mb-0">My Projects</h2>
+                <p class="text-gray-500 text-sm mt-2">Klik project untuk melihat detail, foto, dan teknologi yang digunakan.</p>
             </div>
+            @if($portfolios->count() > 6)
+            <a href="{{ route('portfolio.index') }}" class="btn-ghost mt-4 sm:mt-0 text-sm py-2.5 px-5">
+                View All ({{ $portfolios->count() }}) <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+            @else
             <a href="{{ route('portfolio.index') }}" class="btn-ghost mt-4 sm:mt-0 text-sm py-2.5 px-5">
                 View All <i class="fas fa-arrow-right text-xs"></i>
             </a>
+            @endif
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 fade-up">
-            @foreach($featured as $item)
-            <div class="portfolio-card group">
+            @foreach($portfolios->take(6) as $item)
+            <a href="{{ route('portfolio.show', $item->slug) }}" class="portfolio-card group block">
                 <div class="portfolio-thumb">
                     @if($item->thumbnail)
                         <img src="{{ Storage::url($item->thumbnail) }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -535,39 +451,65 @@
                         <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/80 text-white">⭐ Featured</span>
                     </div>
                     @endif
+                    {{-- Hover overlay: detail, demo, github --}}
                     <div class="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                        <a href="{{ route('portfolio.show', $item->slug) }}" class="portfolio-action-btn">
+                        <span class="portfolio-action-btn">
                             <i class="fas fa-eye"></i>
-                        </a>
+                        </span>
                         @if($item->demo_url)
-                        <a href="{{ $item->demo_url }}" target="_blank" class="portfolio-action-btn">
+                        <span onclick="event.preventDefault(); window.open('{{ $item->demo_url }}','_blank')" class="portfolio-action-btn">
                             <i class="fas fa-external-link-alt"></i>
-                        </a>
+                        </span>
                         @endif
                         @if($item->github_url)
-                        <a href="{{ $item->github_url }}" target="_blank" class="portfolio-action-btn">
+                        <span onclick="event.preventDefault(); window.open('{{ $item->github_url }}','_blank')" class="portfolio-action-btn">
                             <i class="fab fa-github"></i>
-                        </a>
+                        </span>
                         @endif
                     </div>
+                    {{-- Gallery count badge --}}
+                    @if(!empty($item->images) && count($item->images) > 0)
+                    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-black/70 text-gray-300 backdrop-blur-sm flex items-center gap-1.5">
+                            <i class="fas fa-images text-violet-400 text-xs"></i>
+                            {{ count($item->images) + 1 }} foto
+                        </span>
+                    </div>
+                    @endif
                 </div>
                 <div class="p-6">
                     <h3 class="font-bold text-white text-base mb-2 group-hover:text-violet-300 transition-colors leading-snug">{{ $item->title }}</h3>
                     <p class="text-gray-500 text-sm leading-relaxed mb-4">{{ $item->short_description }}</p>
                     @if($item->technologies)
-                    <div class="flex flex-wrap gap-1.5">
+                    <div class="flex flex-wrap gap-1.5 mb-3">
                         @foreach(array_slice($item->technologies_array, 0, 4) as $tech)
                         <span class="tech-tag text-xs">{{ $tech }}</span>
                         @endforeach
                         @if(count($item->technologies_array) > 4)
-                        <span class="text-xs text-gray-600 px-2 py-1">+{{ count($item->technologies_array) - 4 }}</span>
+                        <span class="text-xs text-gray-600 px-2 py-1">+{{ count($item->technologies_array) - 4 }} more</span>
                         @endif
                     </div>
                     @endif
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-800/60">
+                        <span class="text-xs text-violet-400 font-semibold flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
+                            Lihat Detail <i class="fas fa-arrow-right text-xs"></i>
+                        </span>
+                        @if($item->completed_at)
+                        <span class="text-xs text-gray-600">{{ $item->completed_at->format('M Y') }}</span>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            </a>
             @endforeach
         </div>
+
+        @if($portfolios->count() > 6)
+        <div class="text-center mt-12 fade-up">
+            <a href="{{ route('portfolio.index') }}" class="btn-primary">
+                <i class="fas fa-th-large"></i> Lihat Semua {{ $portfolios->count() }} Project
+            </a>
+        </div>
+        @endif
     </div>
 </section>
 @endif
